@@ -25,10 +25,17 @@ export function generateOtp() {
 }
 
 export function refreshCookieOptions(rememberMe) {
+  const isProduction = process.env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    // Frontend and backend are deployed on different domains (e.g. Vercel +
+    // Render), which makes every API call a cross-site request. Browsers
+    // only send SameSite=Lax cookies on top-level navigation, never on
+    // fetch/XHR, so the refresh cookie would silently stop being sent —
+    // SameSite=None (which requires Secure) is required in production.
+    // Lax is kept for local dev, where Vite's proxy makes requests same-origin.
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/api/v1/auth',
     maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
   };

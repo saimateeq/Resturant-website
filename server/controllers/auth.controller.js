@@ -220,7 +220,7 @@ export const logout = asyncHandler(async (req, res) => {
     }
   }
 
-  res.clearCookie('refreshToken', { path: '/api/v1/auth' });
+  res.clearCookie('refreshToken', refreshCookieOptions());
   res.status(200).json(new ApiResponse(200, null, 'Logged out'));
 });
 
