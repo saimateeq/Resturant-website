@@ -119,7 +119,7 @@ export default function Navbar() {
                 </NavLink>
               </li>
             ))}
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <li className="border-t border-secondary-500/10">
                 <NavLink
                   to={accountLink}
@@ -129,6 +129,27 @@ export default function Navbar() {
                   {isAdmin ? 'Admin Panel' : 'My Account'}
                 </NavLink>
               </li>
+            ) : (
+              <>
+                <li className="border-t border-secondary-500/10">
+                  <NavLink
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-6 py-3 text-sm font-medium text-secondary-700 dark:text-secondary-200"
+                  >
+                    Login
+                  </NavLink>
+                </li>
+                <li className="border-t border-secondary-500/10">
+                  <NavLink
+                    to="/register"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-6 py-3 text-sm font-medium text-secondary-700 dark:text-secondary-200"
+                  >
+                    Register
+                  </NavLink>
+                </li>
+              </>
             )}
             {isAuthenticated && (
               <li className="border-t border-secondary-500/10">
