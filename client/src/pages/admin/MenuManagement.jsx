@@ -43,6 +43,14 @@ function DishFormModal({ isOpen, onClose, dish, categories, onSaved }) {
   }, [isOpen, dish, reset]);
 
   const onSubmit = async (formData) => {
+    // Only required when creating a new dish — editing keeps the existing
+    // images if no new files are chosen. Without this, a dish could be
+    // created with no image at all and no admin-facing error to explain why
+    // (that's exactly how one live dish ended up with a blank card).
+    if (!dish && files.length === 0) {
+      toast.error('Add at least one image');
+      return;
+    }
     try {
       const payload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {

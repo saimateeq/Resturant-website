@@ -6,12 +6,18 @@ const dishSchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true, lowercase: true },
     description: { type: String, required: true, maxlength: 1000 },
     ingredients: [{ type: String, trim: true }],
-    images: [
-      {
-        url: { type: String, required: true },
-        publicId: { type: String, default: '' },
+    images: {
+      type: [
+        {
+          url: { type: String, required: true },
+          publicId: { type: String, default: '' },
+        },
+      ],
+      validate: {
+        validator: (arr) => Array.isArray(arr) && arr.length > 0,
+        message: 'At least one image is required.',
       },
-    ],
+    },
 
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
 

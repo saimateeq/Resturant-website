@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
+// Frames loaded immediately at normal priority — just enough for the first
+// screenful of scrolling. The remaining frames trickle in afterward instead
+// of firing 180+ concurrent requests on page load, which used to account for
+// several megabytes of eager network traffic before the user scrolled at all.
+const PRIORITY_HEAD = 12;
+const BACKGROUND_BATCH_SIZE = 8;
+const BACKGROUND_BATCH_DELAY_MS = 60;
+
 /**
  * Preloads an ordered list of image URLs and exposes the closest already-loaded
  * frame for any requested index, so a scroll-scrubbed sequence never draws a
@@ -16,9 +24,10 @@ export function useFrameSequence(urls) {
     imagesRef.current = new Array(urls.length).fill(null);
     setLoadedCount(0);
 
-    urls.forEach((src, index) => {
+    const loadOne = (src, index, priority) => {
       const img = new Image();
       img.decoding = 'async';
+      if ('fetchPriority' in img) img.fetchPriority = priority;
       const settle = () => {
         if (cancelled) return;
         imagesRef.current[index] = img;
@@ -27,7 +36,21 @@ export function useFrameSequence(urls) {
       img.onload = settle;
       img.onerror = settle; // don't let one bad frame stall the whole sequence
       img.src = src;
-    });
+    };
+
+    urls.slice(0, PRIORITY_HEAD).forEach((src, i) => loadOne(src, i, 'high'));
+
+    let batchIndex = 0;
+    const loadNextBackgroundBatch = () => {
+      if (cancelled) return;
+      const start = PRIORITY_HEAD + batchIndex * BACKGROUND_BATCH_SIZE;
+      const batch = urls.slice(start, start + BACKGROUND_BATCH_SIZE);
+      if (!batch.length) return;
+      batch.forEach((src, i) => loadOne(src, start + i, 'low'));
+      batchIndex += 1;
+      setTimeout(loadNextBackgroundBatch, BACKGROUND_BATCH_DELAY_MS);
+    };
+    loadNextBackgroundBatch();
 
     return () => {
       cancelled = true;
@@ -51,6 +74,11 @@ export function useFrameSequence(urls) {
     total: urls.length,
     loadedCount,
     isReady: urls.length > 0 && loadedCount >= urls.length,
+    // True once just the priority head has loaded — enough for a smooth
+    // start to scrolling. Gate the "start scrolling" UI on this rather than
+    // on full completion, since the rest of the sequence now loads in the
+    // background over a longer window by design (see PRIORITY_HEAD above).
+    isHeadReady: urls.length > 0 && loadedCount >= Math.min(PRIORITY_HEAD, urls.length),
     progress: urls.length ? loadedCount / urls.length : 0,
     getNearestLoadedFrame,
   };

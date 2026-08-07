@@ -18,6 +18,12 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [deliveryType, setDeliveryType] = useState('delivery');
   const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
+  // Guards the empty-cart redirect below from firing on the split-second
+  // after a successful order clears the cart — without this, that effect
+  // raced the post-order navigate() to /orders/:id and won, so a real order
+  // would go through but the user landed back on an empty cart with no
+  // confirmation at all.
+  const [orderPlaced, setOrderPlaced] = useState(false);
 
   const {
     register,
@@ -28,10 +34,10 @@ export default function Checkout() {
   const totals = calculateCartTotals(items, { deliveryType, coupon });
 
   useEffect(() => {
-    if (items.length === 0) navigate('/cart');
-  }, [items.length, navigate]);
+    if (items.length === 0 && !orderPlaced) navigate('/cart');
+  }, [items.length, orderPlaced, navigate]);
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderPlaced) {
     return null;
   }
 
@@ -57,6 +63,7 @@ export default function Checkout() {
       };
 
       const { data } = await orderService.createOrder(payload);
+      setOrderPlaced(true);
       dispatch(clearCart());
       toast.success('Order placed!');
       navigate(`/orders/${data.data.order._id}`);

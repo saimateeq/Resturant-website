@@ -71,7 +71,7 @@ export default function Testimonials() {
                   <div className="mt-4 flex items-center gap-3">
                     <img
                       src={t.avatar}
-                      alt=""
+                      alt={t.name}
                       loading="lazy"
                       className="h-10 w-10 rounded-full object-cover"
                     />

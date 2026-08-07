@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useSEO } from '@hooks/useSEO';
 
 export default function NotFound() {
+  useSEO({ title: 'Page Not Found' });
+
   return (
     <div className="container-app flex min-h-[70vh] flex-col items-center justify-center text-center">
       <p className="font-display text-8xl font-bold text-primary-500">404</p>

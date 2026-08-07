@@ -12,7 +12,8 @@
     "start": "node server.js",
     "seed:users": "node scripts/seedUsers.js",
     "seed:menu": "node scripts/seedMenu.js",
-    "seed:orders": "node scripts/seedOrders.js"
+    "seed:orders": "node scripts/seedOrders.js",
+    "fix:image-encoding": "node scripts/fixPlaceholderImageEncoding.js"
   },
   "keywords": [
     "restaurant",

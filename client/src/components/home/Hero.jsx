@@ -123,7 +123,7 @@ function ScrubbedHero() {
   const skipRef = useRef(null);
   const watermarkCoverRef = useRef(null);
 
-  const { getNearestLoadedFrame, progress, isReady } = useFrameSequence(FRAME_URLS);
+  const { getNearestLoadedFrame, progress, isHeadReady } = useFrameSequence(FRAME_URLS);
 
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
@@ -347,8 +347,8 @@ function ScrubbedHero() {
           <FiChevronsDown size={20} />
         </button>
 
-        {!isReady && (
-          <div className="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2">
+        {!isHeadReady && (
+          <div className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2">
             <div className="h-px w-40 overflow-hidden bg-white/10">
               <div
                 className="h-full bg-primary-400 transition-[width] duration-200"
@@ -361,14 +361,21 @@ function ScrubbedHero() {
           </div>
         )}
 
-        <div
-          ref={promptRef}
-          style={{ opacity: 1 }}
-          className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2 text-white/70"
-        >
-          <span className="text-[10px] tracking-[0.24em] uppercase">Scroll</span>
-          <FiChevronDown className="animate-bounce" />
-        </div>
+        {/* Only shown once there's enough of the sequence loaded to scrub
+            smoothly — it used to render at the same time and position as the
+            loading indicator above, overlapping it illegibly. Gated on the
+            "head" batch rather than full completion, since the rest of the
+            sequence now streams in over a longer background window. */}
+        {isHeadReady && (
+          <div
+            ref={promptRef}
+            style={{ opacity: 1 }}
+            className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2 text-white/70"
+          >
+            <span className="text-[10px] tracking-[0.24em] uppercase">Scroll</span>
+            <FiChevronDown className="animate-bounce" />
+          </div>
+        )}
 
         <div
           ref={contentRef}

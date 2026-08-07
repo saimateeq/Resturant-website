@@ -9,7 +9,13 @@ import User from '../models/User.js';
 import Coupon from '../models/Coupon.js';
 import BlogPost from '../models/BlogPost.js';
 
-const img = (keyword, n) => ({ url: `https://loremflickr.com/800/600/${keyword}?lock=${n}`, publicId: '' });
+// `n` (a dish/category/post name) can contain spaces, colons, ampersands,
+// etc. — unencoded, those broke the request outright for any name with a
+// colon (e.g. "Behind the Scenes: Meet Our Head Chef" 404'd the image).
+const img = (keyword, n) => ({
+  url: `https://loremflickr.com/800/600/${keyword}?lock=${encodeURIComponent(n)}`,
+  publicId: '',
+});
 
 const CATEGORIES = [
   { name: 'Appetizers', description: 'Start your meal right with our signature small plates.', keyword: 'appetizer,starter' },
