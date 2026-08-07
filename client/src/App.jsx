@@ -37,8 +37,9 @@ export default function App() {
         position="top-right"
         toastOptions={{
           style: {
-            background: theme === 'dark' ? '#1f1f23' : '#ffffff',
-            color: theme === 'dark' ? '#f3f4f6' : '#17171b',
+            background: theme === 'dark' ? 'var(--color-secondary-900)' : 'var(--color-surface)',
+            color: theme === 'dark' ? 'var(--color-secondary-100)' : 'var(--color-secondary-900)',
+            border: theme === 'dark' ? '1px solid var(--color-secondary-800)' : '1px solid var(--color-secondary-200)',
           },
         }}
       />

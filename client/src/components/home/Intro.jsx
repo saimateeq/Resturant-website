@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { FiArrowRight } from 'react-icons/fi';
 import Reveal from '@components/common/Reveal';
 import { slideInLeft, slideInRight } from '@animations/variants';
+import chef from '../../assets/images/chef.avif';
 
 export default function Intro() {
   return (
@@ -10,7 +11,7 @@ export default function Intro() {
         <Reveal variants={slideInLeft} className="relative">
           <div className="aspect-square overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary-200 to-primary-500 shadow-soft">
             <img
-              src="https://loremflickr.com/900/900/chef,kitchen?lock=intro"
+              src={chef}
               alt="Chef preparing a dish in the Savoria kitchen"
               loading="lazy"
               className="h-full w-full object-cover"

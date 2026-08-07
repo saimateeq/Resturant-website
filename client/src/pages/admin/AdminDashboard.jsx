@@ -20,7 +20,7 @@ import StatCard from '@components/admin/StatCard';
 import Loader from '@components/common/Loader';
 
 const STATUS_COLORS = {
-  pending: '#eaad33',
+  pending: 'var(--color-primary-400)',
   accepted: '#3b82f6',
   preparing: '#3b82f6',
   ready: '#a855f7',
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="revenue" stroke="#b87a17" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="revenue" stroke="var(--color-primary-600)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
-              <Bar dataKey="orderCount" fill="#b87a17" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="orderCount" fill="var(--color-primary-600)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, Link } from 'react-router-dom';
 import {
   FiGrid,
   FiBook,
@@ -14,6 +14,7 @@ import {
   FiMenu,
   FiX,
   FiLogOut,
+  FiExternalLink,
 } from 'react-icons/fi';
 import { useAuth } from '@hooks/useAuth';
 import ThemeToggle from '@components/layout/ThemeToggle';
@@ -85,6 +86,16 @@ export default function AdminLayout() {
                 {user.name}
               </span>
             )}
+            <Link
+              to="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View site"
+              title="View site"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-secondary-700 transition-colors hover:bg-secondary-500/10 dark:text-secondary-200"
+            >
+              <FiExternalLink size={18} />
+            </Link>
             <ThemeToggle />
             <button
               type="button"
