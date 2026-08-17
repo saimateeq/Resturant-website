@@ -80,40 +80,45 @@ export default function Menu() {
   ]);
 
   return (
-    <div className="container-app py-16">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="text-center"
-      >
-        <h1 className="text-4xl font-bold text-secondary-900 dark:text-secondary-50">Our Menu</h1>
-        <p className="mt-3 text-secondary-500 dark:text-secondary-400">
-          Crafted dishes made from the finest, freshest ingredients
-        </p>
-      </motion.div>
+    <div className="bg-cream py-24 sm:py-32">
+      <div className="container-app">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center"
+        >
+          <span className="eyebrow">The Full Menu</span>
+          <h1 className="mt-5 font-display text-4xl leading-[1.1] font-medium text-ink italic sm:text-5xl">
+            Our Menu
+          </h1>
+          <p className="mt-4 font-body text-sm text-ink/60">
+            Crafted dishes made from the finest, freshest ingredients
+          </p>
+        </motion.div>
 
-      <div className="mt-10">
-        <MenuFilters categories={categories} filters={filters} onChange={setFilters} />
+        <div className="mt-14">
+          <MenuFilters categories={categories} filters={filters} onChange={setFilters} />
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
+            : dishes.map((dish) => <DishCard key={dish._id} dish={dish} />)}
+        </div>
+
+        {!loading && dishes.length === 0 && (
+          <p className="mt-16 text-center font-body text-sm text-ink/50">
+            No dishes match your filters. Try adjusting your search.
+          </p>
+        )}
+
+        <Pagination
+          page={filters.page}
+          totalPages={pagination.totalPages}
+          onChange={(page) => setFilters((prev) => ({ ...prev, page }))}
+        />
       </div>
-
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-          : dishes.map((dish) => <DishCard key={dish._id} dish={dish} />)}
-      </div>
-
-      {!loading && dishes.length === 0 && (
-        <p className="mt-16 text-center text-secondary-500 dark:text-secondary-400">
-          No dishes match your filters. Try adjusting your search.
-        </p>
-      )}
-
-      <Pagination
-        page={filters.page}
-        totalPages={pagination.totalPages}
-        onChange={(page) => setFilters((prev) => ({ ...prev, page }))}
-      />
     </div>
   );
 }

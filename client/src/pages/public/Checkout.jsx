@@ -7,8 +7,10 @@ import cn from '@utils/cn';
 import { calculateCartTotals } from '@utils/pricing';
 import { orderService } from '@services/orderService';
 import { clearCart } from '@redux/slices/cartSlice';
-import Input from '@components/ui/Input';
-import Button from '@components/ui/Button';
+
+const fieldClass =
+  'w-full border-b border-ink/15 bg-transparent px-0 py-2.5 font-body text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-gold';
+const labelClass = 'mb-1.5 block font-body text-xs font-semibold tracking-[0.1em] text-ink/50 uppercase';
 
 export default function Checkout() {
   const items = useSelector((state) => state.cart.items);
@@ -73,143 +75,154 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container-app py-16">
-      <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-50">Checkout</h1>
+    <div className="bg-cream py-24 sm:py-32">
+      <div className="container-app">
+        <span className="eyebrow">Almost There</span>
+        <h1 className="mt-5 font-display text-4xl text-ink italic sm:text-5xl">Checkout</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-2xl border border-secondary-500/10 bg-white p-6 dark:bg-secondary-900">
-            <h2 className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-50">
-              Delivery Method
-            </h2>
-            <div className="mt-4 flex gap-3">
-              {['delivery', 'pickup'].map((type) => (
-                <button
-                  type="button"
-                  key={type}
-                  onClick={() => setDeliveryType(type)}
-                  className={cn(
-                    'flex-1 rounded-xl border py-3 text-sm font-medium capitalize transition-colors',
-                    deliveryType === type
-                      ? 'border-primary-500 bg-primary-500/10 text-primary-600 dark:text-primary-400'
-                      : 'border-secondary-500/20 text-secondary-600 dark:text-secondary-300',
-                  )}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-3">
+          <div className="space-y-8 lg:col-span-2">
+            <div className="border border-ink/10 p-6">
+              <h2 className="font-display text-lg text-ink italic">Delivery Method</h2>
+              <div className="mt-4 flex gap-3">
+                {['delivery', 'pickup'].map((type) => (
+                  <button
+                    type="button"
+                    key={type}
+                    onClick={() => setDeliveryType(type)}
+                    className={cn(
+                      'flex-1 border py-3 font-body text-sm capitalize transition-colors',
+                      deliveryType === type
+                        ? 'border-ink bg-ink text-cream'
+                        : 'border-ink/15 text-ink/60 hover:border-ink/40',
+                    )}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
 
-            {deliveryType === 'delivery' && (
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Input
-                    label="Street address"
-                    error={errors.street?.message}
-                    {...register('street', { required: deliveryType === 'delivery' && 'Street is required' })}
-                  />
+              {deliveryType === 'delivery' && (
+                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className={labelClass}>Street address</label>
+                    <input
+                      className={fieldClass}
+                      {...register('street', { required: deliveryType === 'delivery' && 'Street is required' })}
+                    />
+                    {errors.street && <p className="mt-1.5 text-xs text-red-600">{errors.street.message}</p>}
+                  </div>
+                  <div>
+                    <label className={labelClass}>City</label>
+                    <input
+                      className={fieldClass}
+                      {...register('city', { required: deliveryType === 'delivery' && 'City is required' })}
+                    />
+                    {errors.city && <p className="mt-1.5 text-xs text-red-600">{errors.city.message}</p>}
+                  </div>
+                  <div>
+                    <label className={labelClass}>State</label>
+                    <input className={fieldClass} {...register('state')} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Zip code</label>
+                    <input className={fieldClass} {...register('zipCode')} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Country</label>
+                    <input className={fieldClass} defaultValue="USA" {...register('country')} />
+                  </div>
                 </div>
-                <Input
-                  label="City"
-                  error={errors.city?.message}
-                  {...register('city', { required: deliveryType === 'delivery' && 'City is required' })}
+              )}
+
+              <div className="mt-6">
+                <label className={labelClass}>Phone number</label>
+                <input className={fieldClass} {...register('phone', { required: 'Phone number is required' })} />
+                {errors.phone && <p className="mt-1.5 text-xs text-red-600">{errors.phone.message}</p>}
+              </div>
+
+              <div className="mt-6">
+                <label className={labelClass}>Special notes (optional)</label>
+                <textarea
+                  rows={3}
+                  placeholder="Allergies, delivery instructions, etc."
+                  {...register('specialNotes')}
+                  className={cn(fieldClass, 'resize-none')}
                 />
-                <Input label="State" {...register('state')} />
-                <Input label="Zip code" {...register('zipCode')} />
-                <Input label="Country" defaultValue="USA" {...register('country')} />
               </div>
-            )}
-
-            <div className="mt-4">
-              <Input
-                label="Phone number"
-                error={errors.phone?.message}
-                {...register('phone', { required: 'Phone number is required' })}
-              />
             </div>
 
-            <div className="mt-4">
-              <label className="mb-1.5 block text-sm font-medium text-secondary-700 dark:text-secondary-300">
-                Special notes (optional)
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Allergies, delivery instructions, etc."
-                {...register('specialNotes')}
-                className="w-full rounded-xl border border-secondary-500/20 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary-500 dark:bg-secondary-800 dark:text-secondary-50"
-              />
+            <div className="border border-ink/10 p-6">
+              <h2 className="font-display text-lg text-ink italic">Payment Method</h2>
+              <div className="mt-4 space-y-2">
+                {[
+                  { value: 'cash_on_delivery', label: 'Cash on Delivery' },
+                  { value: 'card', label: 'Credit / Debit Card' },
+                ].map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex items-center gap-3 border border-ink/15 p-3 font-body text-sm text-ink/80"
+                  >
+                    <input
+                      type="radio"
+                      checked={paymentMethod === opt.value}
+                      onChange={() => setPaymentMethod(opt.value)}
+                      className="accent-ink"
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-secondary-500/10 bg-white p-6 dark:bg-secondary-900">
-            <h2 className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-50">
-              Payment Method
-            </h2>
-            <div className="mt-4 space-y-2">
-              {[
-                { value: 'cash_on_delivery', label: 'Cash on Delivery' },
-                { value: 'card', label: 'Credit / Debit Card' },
-              ].map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex items-center gap-3 rounded-xl border border-secondary-500/20 p-3 text-sm"
-                >
-                  <input
-                    type="radio"
-                    checked={paymentMethod === opt.value}
-                    onChange={() => setPaymentMethod(opt.value)}
-                  />
-                  {opt.label}
-                </label>
+          <div className="h-fit border border-ink/10 p-6">
+            <h2 className="font-display text-lg text-ink italic">Order Summary</h2>
+            <ul className="mt-4 space-y-2 font-body text-sm text-ink/65">
+              {items.map((item) => (
+                <li key={item.dishId} className="flex justify-between">
+                  <span>
+                    {item.quantity} × {item.name}
+                  </span>
+                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                </li>
               ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="h-fit rounded-2xl border border-secondary-500/10 bg-white p-6 dark:bg-secondary-900">
-          <h2 className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-50">
-            Order Summary
-          </h2>
-          <ul className="mt-4 space-y-2 text-sm text-secondary-600 dark:text-secondary-300">
-            {items.map((item) => (
-              <li key={item.dishId} className="flex justify-between">
-                <span>
-                  {item.quantity} × {item.name}
-                </span>
-                <span>${(item.price * item.quantity).toFixed(2)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 space-y-2 border-t border-secondary-500/10 pt-4 text-sm text-secondary-600 dark:text-secondary-300">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>${totals.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax</span>
-              <span>${totals.tax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Delivery</span>
-              <span>{totals.deliveryFee === 0 ? 'Free' : `$${totals.deliveryFee.toFixed(2)}`}</span>
-            </div>
-            {totals.discount > 0 && (
-              <div className="flex justify-between text-primary-600 dark:text-primary-400">
-                <span>Discount</span>
-                <span>-${totals.discount.toFixed(2)}</span>
+            </ul>
+            <div className="mt-4 space-y-2 border-t border-ink/10 pt-4 font-body text-sm text-ink/65">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>${totals.subtotal.toFixed(2)}</span>
               </div>
-            )}
-            <div className="flex justify-between text-base font-semibold text-secondary-900 dark:text-secondary-50">
-              <span>Total</span>
-              <span>${totals.total.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span>Tax</span>
+                <span>${totals.tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Delivery</span>
+                <span>{totals.deliveryFee === 0 ? 'Free' : `$${totals.deliveryFee.toFixed(2)}`}</span>
+              </div>
+              {totals.discount > 0 && (
+                <div className="flex justify-between text-gold">
+                  <span>Discount</span>
+                  <span>-${totals.discount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-display text-base text-ink">
+                <span>Total</span>
+                <span>${totals.total.toFixed(2)}</span>
+              </div>
             </div>
-          </div>
 
-          <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Placing order…' : 'Place Order'}
-          </Button>
-        </div>
-      </form>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="mt-6 flex min-h-[44px] w-full items-center justify-center border border-ink bg-ink font-body text-xs font-semibold tracking-[0.1em] text-cream uppercase transition-colors hover:bg-espresso disabled:opacity-60"
+            >
+              {isSubmitting ? 'Placing order…' : 'Place Order'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

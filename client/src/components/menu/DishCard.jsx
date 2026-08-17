@@ -39,63 +39,54 @@ export default function DishCard({ dish }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.4 }}
-      whileHover={{ y: -6 }}
-      className="group overflow-hidden rounded-2xl border border-secondary-500/10 bg-white shadow-soft dark:bg-secondary-900"
+      className="group overflow-hidden border border-ink/10 bg-cream"
     >
       <Link to={`/menu/${dish.slug}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-secondary-100 dark:bg-secondary-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-ink/5">
           {dish.images?.[0]?.url ? (
             <img
               src={dish.images[0].url}
               alt={dish.name}
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-secondary-300">
+            <div className="flex h-full w-full items-center justify-center text-ink/20">
               <FiShoppingBag size={32} />
             </div>
           )}
           {hasDiscount && (
-            <span className="absolute top-3 left-3 rounded-full bg-primary-500 px-3 py-1 text-xs font-semibold text-white">
+            <span className="absolute top-3 left-3 bg-ink px-3 py-1 font-body text-xs font-semibold tracking-[0.08em] text-cream uppercase">
               Sale
             </span>
           )}
-          <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-xs font-semibold text-secondary-900 dark:bg-secondary-900/90 dark:text-secondary-50">
-            <FiStar className="fill-primary-500 text-primary-500" size={12} />
+          <div className="absolute top-3 right-3 flex items-center gap-1 bg-cream/90 px-2 py-1 font-body text-xs font-semibold text-ink">
+            <FiStar className="fill-gold text-gold" size={12} />
             {dish.ratingsAverage?.toFixed(1) || 'New'}
           </div>
           <button
             type="button"
             onClick={handleToggleWishlist}
             aria-label="Toggle wishlist"
-            className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-secondary-700 dark:bg-secondary-900/90 dark:text-secondary-200"
+            className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-ink/70"
           >
-            <FiHeart size={14} className={cn(wishlisted && 'fill-primary-500 text-primary-500')} />
+            <FiHeart size={14} className={cn(wishlisted && 'fill-gold text-gold')} />
           </button>
         </div>
 
         <div className="p-4">
-          <h3 className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-50">
-            {dish.name}
-          </h3>
-          <p className="mt-1 line-clamp-2 text-sm text-secondary-500 dark:text-secondary-400">
-            {dish.description}
-          </p>
+          <h3 className="font-display text-lg text-ink italic">{dish.name}</h3>
+          <p className="mt-1 line-clamp-2 font-body text-sm text-ink/55">{dish.description}</p>
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                ${price?.toFixed(2)}
-              </span>
+              <span className="font-display text-lg text-gold">${price?.toFixed(2)}</span>
               {hasDiscount && (
-                <span className="text-sm text-secondary-400 line-through">
-                  ${dish.price.toFixed(2)}
-                </span>
+                <span className="font-body text-sm text-ink/35 line-through">${dish.price.toFixed(2)}</span>
               )}
             </div>
             {dish.prepTimeMinutes && (
-              <span className="flex items-center gap-1 text-xs text-secondary-400">
+              <span className="flex items-center gap-1 font-body text-xs text-ink/40">
                 <FiClock size={12} /> {dish.prepTimeMinutes}m
               </span>
             )}
@@ -107,7 +98,7 @@ export default function DishCard({ dish }) {
         <button
           type="button"
           onClick={handleAddToCart}
-          className="btn-gradient flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-medium"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 border border-ink bg-ink font-body text-xs font-semibold tracking-[0.08em] text-cream uppercase transition-colors hover:bg-espresso"
         >
           <FiShoppingBag size={14} /> Add to Cart
         </button>
