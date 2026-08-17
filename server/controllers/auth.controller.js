@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+import PendingSignup from '../models/PendingSignup.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -17,6 +18,11 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const MAX_OTP_ATTEMPTS = 3;
+// How long a PendingSignup record (and a verified token within it) stays
+// alive — generous enough to cover filling out the rest of the signup form
+// after verifying, but short enough that abandoned attempts don't linger.
+const SIGNUP_SESSION_MS = 20 * 60 * 1000;
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 async function issueSession(res, user, rememberMe = false) {
   const accessToken = signAccessToken(user);
@@ -29,97 +35,118 @@ async function issueSession(res, user, rememberMe = false) {
   return accessToken;
 }
 
-export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone } = req.body;
+// Step 1 of signup: send (or resend) an OTP to an email address before any
+// account exists. Upserts a PendingSignup record — calling this again for
+// the same email (resend) just issues a fresh code.
+export const sendSignupOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
 
-  const existing = await User.findOne({ email });
-  if (existing) {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
     throw new ApiError(409, 'An account with this email already exists');
   }
 
-  const otp = generateOtp();
-  const user = await User.create({
-    name,
-    email,
-    password,
-    phone,
-    emailOtp: otp,
-    emailOtpExpiry: Date.now() + OTP_EXPIRY_MS,
-  });
+  let pending = await PendingSignup.findOne({ email });
+  if (!pending) pending = new PendingSignup({ email });
 
-  await sendOtpEmail(email, otp).catch((err) => {
+  pending.otp = generateOtp();
+  pending.otpExpiry = Date.now() + OTP_EXPIRY_MS;
+  pending.otpAttempts = 0;
+  pending.verified = false;
+  pending.verificationToken = undefined;
+  pending.verificationTokenExpiry = undefined;
+  pending.expiresAt = new Date(Date.now() + SIGNUP_SESSION_MS);
+  await pending.save();
+
+  await sendOtpEmail(email, pending.otp).catch((err) => {
     console.error('Failed to send OTP email:', err.message);
   });
 
-  res
-    .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        { email: user.email },
-        'Account created. Check your email for a verification code.',
-      ),
-    );
+  res.status(200).json(new ApiResponse(200, { email }, 'Verification code sent'));
 });
 
-export const verifyOtp = asyncHandler(async (req, res) => {
+// Step 2 of signup: verify the OTP for an email that doesn't have an account
+// yet. Returns a short-lived token the client must present to /register to
+// prove the email was verified, without creating the account here.
+export const verifySignupOtp = asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
 
-  const user = await User.findOne({ email }).select('+emailOtp +emailOtpExpiry +emailOtpAttempts');
-  if (!user) {
+  const pending = await PendingSignup.findOne({ email }).select('+otp +otpExpiry +otpAttempts');
+  if (!pending) {
     throw new ApiError(400, 'Invalid or expired verification code');
   }
 
-  const isValid = user.emailOtp === otp && user.emailOtpExpiry > Date.now();
+  const isValid = pending.otp === otp && pending.otpExpiry > Date.now();
 
   if (!isValid) {
-    user.emailOtpAttempts += 1;
+    pending.otpAttempts += 1;
 
-    if (user.emailOtpAttempts >= MAX_OTP_ATTEMPTS) {
-      await user.deleteOne();
+    if (pending.otpAttempts >= MAX_OTP_ATTEMPTS) {
+      await pending.deleteOne();
       throw new ApiError(
         400,
-        'Too many incorrect attempts. This account has been removed — please register again.',
+        'Too many incorrect attempts. Please request a new code.',
         ['OTP_ATTEMPTS_EXCEEDED'],
       );
     }
 
-    await user.save({ validateBeforeSave: false });
-    const remaining = MAX_OTP_ATTEMPTS - user.emailOtpAttempts;
+    await pending.save();
+    const remaining = MAX_OTP_ATTEMPTS - pending.otpAttempts;
     throw new ApiError(
       400,
       `Invalid or expired verification code. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`,
     );
   }
 
-  user.isEmailVerified = true;
-  user.emailOtp = undefined;
-  user.emailOtpExpiry = undefined;
-  user.emailOtpAttempts = 0;
-  const accessToken = await issueSession(res, user);
-  await user.save({ validateBeforeSave: false });
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  pending.verified = true;
+  pending.otp = undefined;
+  pending.otpExpiry = undefined;
+  pending.otpAttempts = 0;
+  pending.verificationToken = hashToken(rawToken);
+  pending.verificationTokenExpiry = Date.now() + SIGNUP_SESSION_MS;
+  pending.expiresAt = new Date(Date.now() + SIGNUP_SESSION_MS);
+  await pending.save();
 
   res
     .status(200)
-    .json(new ApiResponse(200, { user: user.toSafeObject(), accessToken }, 'Email verified'));
+    .json(new ApiResponse(200, { email, verificationToken: rawToken }, 'Email verified'));
 });
 
-export const resendOtp = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) throw new ApiError(404, 'No account found with this email');
-  if (user.isEmailVerified) throw new ApiError(400, 'Email is already verified');
+// Step 3 of signup: create the account. Only succeeds if the email carries a
+// valid, unexpired verification token from verifySignupOtp — the account is
+// created already verified and the user is logged in immediately.
+export const register = asyncHandler(async (req, res) => {
+  const { name, email, password, phone, verificationToken } = req.body;
 
-  const otp = generateOtp();
-  user.emailOtp = otp;
-  user.emailOtpExpiry = Date.now() + OTP_EXPIRY_MS;
-  user.emailOtpAttempts = 0;
-  await user.save({ validateBeforeSave: false });
-  await sendOtpEmail(email, otp).catch((err) => {
-    console.error('Failed to send OTP email:', err.message);
-  });
+  const existing = await User.findOne({ email });
+  if (existing) {
+    throw new ApiError(409, 'An account with this email already exists');
+  }
 
-  res.status(200).json(new ApiResponse(200, null, 'Verification code resent'));
+  const pending = await PendingSignup.findOne({ email }).select(
+    '+verificationToken +verificationTokenExpiry',
+  );
+  const tokenValid =
+    pending &&
+    pending.verified &&
+    pending.verificationToken === hashToken(verificationToken || '') &&
+    pending.verificationTokenExpiry > Date.now();
+
+  if (!tokenValid) {
+    throw new ApiError(400, 'Please verify your email before creating an account.', [
+      'EMAIL_NOT_VERIFIED',
+    ]);
+  }
+
+  const user = await User.create({ name, email, password, phone, isEmailVerified: true });
+  await pending.deleteOne();
+
+  const accessToken = await issueSession(res, user);
+
+  res
+    .status(201)
+    .json(new ApiResponse(201, { user: user.toSafeObject(), accessToken }, 'Account created'));
 });
 
 export const login = asyncHandler(async (req, res) => {

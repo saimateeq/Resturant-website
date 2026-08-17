@@ -5,12 +5,14 @@ import AuthLayout from '@layouts/AuthLayout';
 import AdminLayout from '@layouts/AdminLayout';
 import ProtectedRoute from './ProtectedRoute';
 import Loader from '@components/common/Loader';
+import ScrollToTop from '@components/common/ScrollToTop';
 import { USER_ROLES } from '@constants';
 
 const Home = lazy(() => import('@pages/public/Home'));
 const About = lazy(() => import('@pages/public/About'));
 const Menu = lazy(() => import('@pages/public/Menu'));
 const DishDetails = lazy(() => import('@pages/public/DishDetails'));
+const Gallery = lazy(() => import('@pages/public/Gallery'));
 const Reservations = lazy(() => import('@pages/public/Reservations'));
 const Cart = lazy(() => import('@pages/public/Cart'));
 const Checkout = lazy(() => import('@pages/public/Checkout'));
@@ -21,7 +23,6 @@ const NotFound = lazy(() => import('@pages/public/NotFound'));
 
 const Login = lazy(() => import('@pages/auth/Login'));
 const Register = lazy(() => import('@pages/auth/Register'));
-const VerifyEmail = lazy(() => import('@pages/auth/VerifyEmail'));
 const ForgotPassword = lazy(() => import('@pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('@pages/auth/ResetPassword'));
 
@@ -41,12 +42,14 @@ const BlogManagement = lazy(() => import('@pages/admin/BlogManagement'));
 export default function AppRoutes() {
   return (
     <Suspense fallback={<Loader />}>
+      <ScrollToTop />
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/menu/:dishId" element={<DishDetails />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
@@ -65,7 +68,6 @@ export default function AppRoutes() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Route>

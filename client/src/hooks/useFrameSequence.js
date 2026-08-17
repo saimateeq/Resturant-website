@@ -7,6 +7,20 @@ import { useEffect, useRef, useState } from 'react';
 const PRIORITY_HEAD = 12;
 const BACKGROUND_BATCH_SIZE = 8;
 const BACKGROUND_BATCH_DELAY_MS = 60;
+// On a metered/slow connection, batches are spaced out much further apart so
+// the rest of the sequence stops competing with content the user actually
+// asked for. Still loads eventually (getNearestLoadedFrame degrades to a
+// chunkier scrub in the meantime) rather than never finishing.
+const SLOW_CONNECTION_BATCH_DELAY_MS = 1200;
+
+function isDataConstrained() {
+  const conn =
+    (typeof navigator !== 'undefined' &&
+      (navigator.connection || navigator.mozConnection || navigator.webkitConnection)) ||
+    null;
+  if (!conn) return false;
+  return Boolean(conn.saveData) || ['slow-2g', '2g'].includes(conn.effectiveType);
+}
 
 /**
  * Preloads an ordered list of image URLs and exposes the closest already-loaded
@@ -40,6 +54,7 @@ export function useFrameSequence(urls) {
 
     urls.slice(0, PRIORITY_HEAD).forEach((src, i) => loadOne(src, i, 'high'));
 
+    const batchDelay = isDataConstrained() ? SLOW_CONNECTION_BATCH_DELAY_MS : BACKGROUND_BATCH_DELAY_MS;
     let batchIndex = 0;
     const loadNextBackgroundBatch = () => {
       if (cancelled) return;
@@ -48,7 +63,7 @@ export function useFrameSequence(urls) {
       if (!batch.length) return;
       batch.forEach((src, i) => loadOne(src, start + i, 'low'));
       batchIndex += 1;
-      setTimeout(loadNextBackgroundBatch, BACKGROUND_BATCH_DELAY_MS);
+      setTimeout(loadNextBackgroundBatch, batchDelay);
     };
     loadNextBackgroundBatch();
 

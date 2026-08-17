@@ -6,7 +6,8 @@ import { authLimiter } from '../middleware/rateLimiter.js';
 import {
   registerValidator,
   loginValidator,
-  verifyOtpValidator,
+  sendSignupOtpValidator,
+  verifySignupOtpValidator,
   forgotPasswordValidator,
   resetPasswordValidator,
   googleAuthValidator,
@@ -14,9 +15,21 @@ import {
 
 const router = Router();
 
+router.post(
+  '/signup/otp',
+  authLimiter,
+  sendSignupOtpValidator,
+  validate,
+  authController.sendSignupOtp,
+);
+router.post(
+  '/signup/verify',
+  authLimiter,
+  verifySignupOtpValidator,
+  validate,
+  authController.verifySignupOtp,
+);
 router.post('/register', authLimiter, registerValidator, validate, authController.register);
-router.post('/verify-otp', authLimiter, verifyOtpValidator, validate, authController.verifyOtp);
-router.post('/resend-otp', authLimiter, authController.resendOtp);
 router.post('/login', authLimiter, loginValidator, validate, authController.login);
 router.post('/google', authLimiter, googleAuthValidator, validate, authController.googleAuth);
 router.post('/refresh-token', authController.refreshTokenHandler);

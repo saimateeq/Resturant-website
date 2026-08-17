@@ -9,14 +9,10 @@ function DishRow({ title, subtitle, dishes }) {
   if (!dishes || dishes.length === 0) return null;
 
   return (
-    <Reveal className="container-app py-16">
+    <Reveal className="container-app bg-cream py-16">
       <div>
-        <span className="text-sm font-semibold tracking-widest text-primary-600 uppercase dark:text-primary-400">
-          {subtitle}
-        </span>
-        <h2 className="mt-2 font-display text-2xl font-bold text-secondary-900 sm:text-3xl dark:text-secondary-50">
-          {title}
-        </h2>
+        <span className="eyebrow">{subtitle}</span>
+        <h2 className="mt-3 font-display text-2xl font-medium text-ink italic sm:text-3xl">{title}</h2>
       </div>
       <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {dishes.slice(0, 4).map((dish) => (

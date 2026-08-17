@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { FiArrowRight } from 'react-icons/fi';
 import Reveal from '@components/common/Reveal';
+import MasonryGallery from '@components/gallery/MasonryGallery';
 import { menuService } from '@services/menuService';
 
 export default function FoodGallery() {
@@ -8,7 +10,7 @@ export default function FoodGallery() {
 
   useEffect(() => {
     menuService
-      .getDishes({ limit: 8, sort: 'popular' })
+      .getDishes({ limit: 6, sort: 'popular' })
       .then(({ data }) =>
         setImages(data.data.dishes.filter((d) => d.images?.[0]?.url).map((d) => ({ url: d.images[0].url, name: d.name }))),
       )
@@ -18,36 +20,26 @@ export default function FoodGallery() {
   if (images.length === 0) return null;
 
   return (
-    <section className="container-app py-24">
-      <Reveal className="text-center">
-        <span className="text-sm font-semibold tracking-widest text-primary-600 uppercase dark:text-primary-400">
-          Gallery
-        </span>
-        <h2 className="mt-3 font-display text-3xl font-bold text-secondary-900 sm:text-4xl dark:text-secondary-50">
-          From Our Kitchen
-        </h2>
-      </Reveal>
-
-      <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {images.map((img, i) => (
-          <motion.div
-            key={img.url}
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.05 }}
-            className={`overflow-hidden rounded-2xl bg-secondary-100 dark:bg-secondary-800 ${
-              i % 5 === 0 ? 'row-span-2 aspect-square sm:aspect-auto sm:h-full' : 'aspect-square'
-            }`}
+    <section className="bg-cream-dim py-28 sm:py-36">
+      <div className="container-app">
+        <Reveal className="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <span className="eyebrow">Gallery</span>
+            <h2 className="mt-5 font-display text-4xl leading-[1.1] font-medium text-ink italic sm:text-5xl">
+              From Our Kitchen
+            </h2>
+          </div>
+          <Link
+            to="/gallery"
+            className="inline-flex items-center gap-2 font-body text-xs font-semibold tracking-[0.1em] text-ink uppercase transition-colors hover:text-gold"
           >
-            <img
-              src={img.url}
-              alt={img.name}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
-            />
-          </motion.div>
-        ))}
+            View Full Gallery <FiArrowRight size={13} />
+          </Link>
+        </Reveal>
+
+        <div className="mt-14">
+          <MasonryGallery images={images} />
+        </div>
       </div>
     </section>
   );

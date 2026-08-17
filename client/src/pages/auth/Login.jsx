@@ -8,7 +8,6 @@ import Button from '@components/ui/Button';
 import GoogleLoginButton from '@components/common/GoogleLoginButton';
 import { useAuth } from '@hooks/useAuth';
 import { useSEO } from '@hooks/useSEO';
-import { authService } from '@services/authService';
 import { USER_ROLES } from '@constants';
 
 const ADMIN_ROLES = [USER_ROLES.ADMIN, USER_ROLES.MANAGER];
@@ -16,7 +15,6 @@ const ADMIN_ROLES = [USER_ROLES.ADMIN, USER_ROLES.MANAGER];
 export default function Login() {
   useSEO({ title: 'Login' });
   const [showPassword, setShowPassword] = useState(false);
-  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,29 +26,14 @@ export default function Login() {
   } = useForm();
 
   const onSubmit = async (formData) => {
-    setUnverifiedEmail(null);
     try {
       const { user } = await login(formData);
       toast.success('Welcome back!');
       const fallback = ADMIN_ROLES.includes(user?.role) ? '/admin' : '/dashboard';
       navigate(location.state?.from?.pathname || fallback, { replace: true });
     } catch (err) {
-      const isUnverified = err.response?.data?.errors?.includes('EMAIL_NOT_VERIFIED');
-      if (isUnverified) {
-        setUnverifiedEmail(formData.email);
-      }
       toast.error(err.response?.data?.message || 'Login failed');
     }
-  };
-
-  const handleVerifyClick = async () => {
-    try {
-      await authService.resendOtp(unverifiedEmail);
-      toast.success('A new verification code has been sent');
-    } catch {
-      // fall through — VerifyEmail page has its own resend button
-    }
-    navigate('/verify-email', { state: { email: unverifiedEmail } });
   };
 
   return (
@@ -103,21 +86,6 @@ export default function Login() {
           {isSubmitting ? 'Logging in…' : 'Log In'}
         </Button>
       </form>
-
-      {unverifiedEmail && (
-        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
-          <p className="text-sm text-amber-700 dark:text-amber-400">
-            Your email isn't verified yet.
-          </p>
-          <button
-            type="button"
-            onClick={handleVerifyClick}
-            className="mt-2 text-sm font-semibold text-primary-600 dark:text-primary-400"
-          >
-            Verify Email
-          </button>
-        </div>
-      )}
 
       <div className="my-6 flex items-center gap-3">
         <div className="h-px flex-1 bg-secondary-500/20" />

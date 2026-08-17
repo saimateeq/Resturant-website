@@ -27,11 +27,6 @@ export function useAuth() {
 
   const register = async (payload) => {
     const { data } = await authService.register(payload);
-    return data.data;
-  };
-
-  const verifyOtp = async (payload) => {
-    const { data } = await authService.verifyOtp(payload);
     dispatch(setCredentials(data.data));
     hydrateWishlist();
     return data.data;
@@ -55,5 +50,5 @@ export function useAuth() {
     }
   };
 
-  return { user, isAuthenticated, accessToken, login, register, verifyOtp, googleLogin, logout };
+  return { user, isAuthenticated, accessToken, login, register, googleLogin, logout };
 }

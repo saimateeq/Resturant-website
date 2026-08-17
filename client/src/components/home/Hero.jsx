@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useScroll, useMotionValueEvent, useReducedMotion } from 'framer-motion';
-import { FiArrowRight, FiCalendar, FiChevronDown, FiChevronsDown } from 'react-icons/fi';
+import { FiChevronDown, FiChevronsDown } from 'react-icons/fi';
 import { useFrameSequence } from '@hooks/useFrameSequence';
+import { useMediaQuery } from '@hooks/useMediaQuery';
+import heroMobileVideo from '../../assets/videos/hero-mobile.mp4';
 
 const clamp01 = (n) => Math.min(1, Math.max(0, n));
 
@@ -91,20 +93,54 @@ function computeFrameTransform(cw, ch) {
   return { scale, dw, dh, dx: (cw - dw) / 2, dy: (ch - dh) / 2 };
 }
 
+// Shared shell for both non-scrubbing variants below: a single full-bleed
+// background (image or video) with the same static content overlay used by
+// the scroll-driven hero's end state, just always visible instead of
+// revealed on scroll.
+function StaticHero({ children }) {
+  return (
+    <section className="relative flex h-[100svh] min-h-[700px] w-full items-end overflow-hidden bg-ink">
+      {children}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/75 to-black/30" />
+      <HeroContent className="relative pb-20" />
+    </section>
+  );
+}
+
 export default function Hero() {
   const prefersReducedMotion = useReducedMotion();
+  // Below tablet width: skip the scroll-scrubbed canvas entirely. Its cover
+  // fit has to back off from a true edge-to-edge crop on narrow screens
+  // (letterboxing top/bottom) to avoid losing too much of the frame's width,
+  // and per-frame canvas redraws on scroll are heavier on mobile hardware. A
+  // real looping video crops to fill with no letterbox and just plays.
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   if (prefersReducedMotion) {
     return (
-      <section className="relative flex h-[85vh] min-h-[560px] w-full items-end overflow-hidden bg-secondary-950">
+      <StaticHero>
         <img
           src={LAST_FRAME}
-          alt="Savoria signature burger, plated"
+          alt="Savoria signature dish, plated"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-secondary-950 via-secondary-950/75 to-black/30" />
-        <HeroContent className="relative pb-14" />
-      </section>
+      </StaticHero>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <StaticHero>
+        <video
+          src={heroMobileVideo}
+          poster={LAST_FRAME}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </StaticHero>
     );
   }
 
@@ -214,6 +250,14 @@ function ScrubbedHero() {
   // larger on screen too — the cover has to grow with that same `scale`
   // factor rather than staying a fixed pixel size, or big screens would show
   // an edge of it peeking past a fixed-size patch.
+  //
+  // Note: this is frame-content space, not viewport space — on a narrow/tall
+  // crop (phones, tablets) the watermark's native position falls well outside
+  // the visible center crop (dx/dy go negative), so `x`/`y` can land far
+  // beyond the viewport edges. That's fine for the cover patch (the watermark
+  // itself is equally out of view, nothing to hide), but the skip button must
+  // NOT share this placement — it needs to stay on-screen regardless of crop,
+  // so it's positioned independently via CSS instead.
   const positionWatermarkCover = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -223,10 +267,6 @@ function ScrubbedHero() {
     const x = dx + WATERMARK_X_FRAC * dw;
     const y = dy + WATERMARK_Y_FRAC * dh;
 
-    if (skipRef.current) {
-      skipRef.current.style.left = `${x}px`;
-      skipRef.current.style.top = `${y}px`;
-    }
     if (watermarkCoverRef.current) {
       // Measured watermark half-extent is ~23px native; 70px native-equivalent
       // diameter before scaling gives a comfortable safety margin.
@@ -283,13 +323,9 @@ function ScrubbedHero() {
       <div className="sticky top-0 h-dvh w-full overflow-hidden" style={{ backgroundColor: FOOTAGE_VOID }}>
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
 
-        <div ref={scrimRef} className="absolute inset-0 bg-secondary-950" style={{ opacity: 0 }} />
+        <div ref={scrimRef} className="absolute inset-0 bg-ink" style={{ opacity: 0 }} />
 
-        <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-secondary-950/75 to-transparent" />
-
-        <div className="absolute top-6 left-6 text-xs font-semibold tracking-[0.3em] text-white/80 uppercase sm:top-8 sm:left-8">
-          Savoria
-        </div>
+        <div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-ink/70 to-transparent" />
 
         <div className="absolute inset-x-0 top-[20%] flex flex-col items-center px-6 text-center sm:top-[24%]">
           {CAPTIONS.map((caption, i) => (
@@ -299,12 +335,12 @@ function ScrubbedHero() {
                 captionRefs.current[i] = el;
               }}
               style={{ opacity: i === 0 ? 1 : 0, transform: 'translateY(12px)' }}
-              className="absolute inset-x-0 mx-auto max-w-[26ch] text-center"
+              className="absolute inset-x-0 ml-auto md:ml-10 mr-auto   max-w-[26ch] text-center"
             >
-              <h2 className="font-display text-2xl leading-tight font-semibold text-white italic drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] sm:text-4xl">
+              <h2 className="font-display text-4xl leading-tight font-medium text-cream italic drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)] sm:text-5xl">
                 {caption.title}
               </h2>
-              <p className="mt-3 text-xs tracking-[0.12em] text-primary-200 uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] sm:text-sm">
+              <p className="mt-3 font-body text-xs tracking-[0.12em] text-gold uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)] sm:text-sm">
                 {caption.subtitle}
               </p>
             </div>
@@ -341,8 +377,8 @@ function ScrubbedHero() {
           onClick={handleSkip}
           aria-label="Skip animation"
           title="Skip animation"
-          style={{ opacity: 1, left: '90.6%', top: '83.3%', transform: 'translate(-50%, -50%)' }}
-          className="absolute z-10 flex h-16 w-16 items-center justify-center rounded-full border border-white/15 bg-secondary-950/80 text-white/80 backdrop-blur-sm transition-colors hover:border-primary-400 hover:text-primary-300"
+          style={{ opacity: 1 }}
+          className="absolute top-24 right-6 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-ink/60 text-cream/80 backdrop-blur-sm transition-colors hover:border-gold hover:text-gold sm:top-28 sm:right-8 sm:h-16 sm:w-16"
         >
           <FiChevronsDown size={20} />
         </button>
@@ -351,11 +387,11 @@ function ScrubbedHero() {
           <div className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2">
             <div className="h-px w-40 overflow-hidden bg-white/10">
               <div
-                className="h-full bg-primary-400 transition-[width] duration-200"
+                className="h-full bg-gold transition-[width] duration-200"
                 style={{ width: `${Math.round(progress * 100)}%` }}
               />
             </div>
-            <span className="text-[10px] tracking-[0.18em] text-secondary-400 uppercase">
+            <span className="font-body text-[10px] tracking-[0.18em] text-cream/50 uppercase">
               Preparing the plate
             </span>
           </div>
@@ -370,9 +406,9 @@ function ScrubbedHero() {
           <div
             ref={promptRef}
             style={{ opacity: 1 }}
-            className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2 text-white/70"
+            className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-2 text-cream/60"
           >
-            <span className="text-[10px] tracking-[0.24em] uppercase">Scroll</span>
+            <span className="font-body text-[10px] tracking-[0.24em] uppercase">Scroll</span>
             <FiChevronDown className="animate-bounce" />
           </div>
         )}
@@ -381,7 +417,7 @@ function ScrubbedHero() {
           ref={contentRef}
           style={{ opacity: 0, transform: 'translateY(24px)', pointerEvents: 'none' }}
           inert
-          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-secondary-950 via-secondary-950/90 to-transparent pt-32 pb-10 sm:pb-14"
+          className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/90 to-transparent pt-32 pb-14 sm:pb-20"
         >
           <HeroContent />
         </div>
@@ -390,61 +426,40 @@ function ScrubbedHero() {
   );
 }
 
+const HERO_HEADING = ['A Table', 'Worth', 'Remembering'];
+
 function HeroContent({ className = '' }) {
   return (
     <div className={`container-app flex flex-col items-center text-center ${className}`}>
-      <div className="flex items-center gap-3 text-xs font-semibold tracking-[0.22em] text-primary-400 uppercase">
-        <span className="inline-block h-px w-6 bg-primary-400" />
-        Fine Dining Since 2010
-        <span className="inline-block h-px w-6 bg-primary-400" />
-      </div>
+      <span className="eyebrow text-cream/70">Seasonal Fine Dining</span>
 
-      <h1 className="mt-5 max-w-2xl font-display text-3xl leading-[1.15] font-semibold text-white italic sm:text-4xl">
-        Cooking is not decoration.
-        <br />
-        It&rsquo;s <span className="text-primary-400 not-italic">craft, plated.</span>
+      <h1 className="mt-5 font-display text-[13vw] leading-[0.95] font-medium text-cream italic sm:text-6xl md:text-7xl lg:text-8xl">
+        {HERO_HEADING.map((line) => (
+          <span key={line} className="block">
+            {line}
+          </span>
+        ))}
       </h1>
 
-      <p className="mt-4 max-w-[46ch] text-[15px] text-secondary-300">
-        Savoria brings together seasonal ingredients, an open pass, and a table held for you
-        &mdash; twelve dishes a night, each one built to be the only thing on your mind.
+      <p className="mt-6 max-w-md font-body text-sm text-cream/70 sm:text-base">
+        Seasonal cuisine. Crafted with intention.
       </p>
 
-      <div className="mt-7 flex flex-wrap justify-center gap-3">
-        <Link
-          to="/menu"
-          className="flex items-center justify-center gap-2 border border-primary-400 bg-primary-400 px-6 py-3 text-xs font-semibold tracking-[0.08em] text-secondary-950 uppercase transition-transform hover:-translate-y-0.5"
-        >
-          Order Now <FiArrowRight />
-        </Link>
+      <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
         <Link
           to="/reservations"
-          className="flex items-center justify-center gap-2 border border-white/20 px-6 py-3 text-xs font-medium tracking-[0.08em] text-white uppercase transition-colors hover:border-primary-400 hover:text-primary-300"
+          className="flex min-h-[44px] items-center justify-center gap-2 border border-gold bg-gold px-7 py-3.5 font-body text-xs font-semibold tracking-[0.12em] text-ink uppercase transition-colors hover:bg-transparent hover:text-gold"
         >
-          <FiCalendar /> Reserve a Table
+          Reserve a Table
         </Link>
-      </div>
-
-      <div className="mt-8 flex gap-7 border-t border-white/10 pt-5">
-        <div className="text-[11px] tracking-[0.08em] text-secondary-400 uppercase">
-          Seatings
-          <strong className="mt-1 block font-display text-lg font-normal text-white italic normal-case">
-            5:30 &ndash; 10p
-          </strong>
-        </div>
-        <div className="text-[11px] tracking-[0.08em] text-secondary-400 uppercase">
-          Tables left
-          <strong className="mt-1 block font-display text-lg font-normal text-white italic normal-case">
-            3 tonight
-          </strong>
-        </div>
-        <div className="text-[11px] tracking-[0.08em] text-secondary-400 uppercase">
-          Chef
-          <strong className="mt-1 block font-display text-lg font-normal text-white italic normal-case">
-            M. Duarte
-          </strong>
-        </div>
+        <Link
+          to="/menu"
+          className="flex min-h-[44px] items-center justify-center gap-2 border border-cream/30 px-7 py-3.5 font-body text-xs font-medium tracking-[0.12em] text-cream uppercase transition-colors hover:border-cream hover:bg-cream/10"
+        >
+          Explore Menu
+        </Link>
       </div>
     </div>
   );
 }
+

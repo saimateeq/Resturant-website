@@ -131,7 +131,7 @@ All routes are mounted under `/api/v1`. Protected routes require `Authorization:
 | Resource | Base path | Notes |
 |---|---|---|
 | Health | `GET /health` | Uptime check |
-| Auth | `/auth` | register, verify-otp, resend-otp, login, google, refresh-token, logout, forgot-password, reset-password, me |
+| Auth | `/auth` | signup/otp, signup/verify, register, login, google, refresh-token, logout, forgot-password, reset-password, me |
 | Categories | `/categories` | public list/get; admin create/update/delete |
 | Dishes | `/dishes` | public list (search/filter/sort/paginate), trending, get by slug; staff create/update/delete, image removal |
 | Orders | `/orders` | customer create/my-orders/get/cancel; staff list-all/update-status |

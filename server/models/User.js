@@ -39,9 +39,6 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String, select: false },
 
     isEmailVerified: { type: Boolean, default: false },
-    emailOtp: { type: String, select: false },
-    emailOtpExpiry: { type: Date, select: false },
-    emailOtpAttempts: { type: Number, default: 0, select: false },
 
     passwordResetToken: { type: String, select: false },
     passwordResetExpiry: { type: Date, select: false },
@@ -64,14 +61,6 @@ const userSchema = new mongoose.Schema(
 
 userSchema.index({ role: 1 });
 
-// Auto-delete accounts that never verify their email within 5 minutes of
-// registration. MongoDB's TTL monitor re-checks the partial filter on each
-// pass, so a document stops matching (and is safe) the moment it's verified.
-userSchema.index(
-  { createdAt: 1 },
-  { expireAfterSeconds: 5 * 60, partialFilterExpression: { isEmailVerified: false } },
-);
-
 userSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password') || !this.password) return;
   this.password = await bcrypt.hash(this.password, 12);
@@ -85,9 +74,6 @@ userSchema.methods.toSafeObject = function toSafeObject() {
   const obj = this.toObject();
   delete obj.password;
   delete obj.refreshToken;
-  delete obj.emailOtp;
-  delete obj.emailOtpExpiry;
-  delete obj.emailOtpAttempts;
   delete obj.passwordResetToken;
   delete obj.passwordResetExpiry;
   delete obj.googleId;

@@ -18,13 +18,11 @@ export default function PopularCategories() {
   if (categories.length === 0) return null;
 
   return (
-    <section className="bg-secondary-50 py-24 dark:bg-secondary-950">
+    <section className="bg-cream py-24 sm:py-32">
       <div className="container-app">
         <Reveal className="text-center">
-          <span className="text-sm font-semibold tracking-widest text-primary-600 uppercase dark:text-primary-400">
-            Explore
-          </span>
-          <h2 className="mt-3 font-display text-3xl font-bold text-secondary-900 sm:text-4xl dark:text-secondary-50">
+          <span className="eyebrow">Explore</span>
+          <h2 className="mt-5 font-display text-4xl leading-[1.1] font-medium text-ink italic sm:text-5xl">
             Popular Categories
           </h2>
         </Reveal>
@@ -34,15 +32,15 @@ export default function PopularCategories() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={staggerContainer}
-          className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
+          className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
         >
           {categories.map((cat) => (
             <motion.div key={cat._id} variants={scaleIn}>
               <Link
                 to={`/menu?category=${cat._id}`}
-                className="group flex flex-col items-center gap-3 rounded-2xl bg-white p-6 text-center shadow-soft transition-transform hover:-translate-y-1 dark:bg-secondary-900"
+                className="group flex flex-col items-center gap-3 border border-ink/10 p-6 text-center transition-colors hover:border-gold"
               >
-                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary-500/10 text-2xl font-display font-bold text-primary-500">
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gold/10 font-display text-2xl text-gold">
                   {cat.image?.url ? (
                     <img
                       src={cat.image.url}
@@ -54,9 +52,7 @@ export default function PopularCategories() {
                     cat.name.charAt(0)
                   )}
                 </div>
-                <span className="text-sm font-medium text-secondary-700 dark:text-secondary-200">
-                  {cat.name}
-                </span>
+                <span className="font-body text-sm font-medium text-ink/80">{cat.name}</span>
               </Link>
             </motion.div>
           ))}

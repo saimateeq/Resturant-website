@@ -34,18 +34,16 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section className="bg-secondary-950 py-24">
+    <section className="bg-ink py-24 sm:py-32">
       <div className="container-app">
         <Reveal className="text-center">
-          <span className="text-sm font-semibold tracking-widest text-primary-400 uppercase">
-            Testimonials
-          </span>
-          <h2 className="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">
+          <span className="eyebrow text-gold">Testimonials</span>
+          <h2 className="mt-5 font-display text-4xl leading-[1.1] font-medium text-cream italic sm:text-5xl">
             What Our Guests Say
           </h2>
         </Reveal>
 
-        <Reveal delay={0.15} className="mt-12">
+        <Reveal delay={0.15} className="mt-14">
           <Swiper
             modules={[Autoplay, SwiperPagination]}
             spaceBetween={24}
@@ -57,25 +55,25 @@ export default function Testimonials() {
           >
             {TESTIMONIALS.map((t) => (
               <SwiperSlide key={t.name}>
-                <div className="h-full rounded-2xl bg-secondary-900 p-6">
+                <div className="h-full border border-cream/10 p-7">
                   <div className="flex gap-1">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <FiStar
                         key={i}
-                        size={14}
-                        className={i < t.rating ? 'fill-primary-400 text-primary-400' : 'text-secondary-700'}
+                        size={13}
+                        className={i < t.rating ? 'fill-gold text-gold' : 'text-cream/20'}
                       />
                     ))}
                   </div>
-                  <p className="mt-4 text-sm text-secondary-300">&ldquo;{t.text}&rdquo;</p>
-                  <div className="mt-4 flex items-center gap-3">
+                  <p className="mt-4 font-body text-sm text-cream/70">&ldquo;{t.text}&rdquo;</p>
+                  <div className="mt-5 flex items-center gap-3">
                     <img
                       src={t.avatar}
                       alt={t.name}
                       loading="lazy"
                       className="h-10 w-10 rounded-full object-cover"
                     />
-                    <p className="font-medium text-white">{t.name}</p>
+                    <p className="font-display text-cream italic">{t.name}</p>
                   </div>
                 </div>
               </SwiperSlide>

@@ -39,6 +39,14 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-secondary-50 dark:bg-secondary-950">
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-64 transform border-r border-secondary-500/10 bg-white transition-transform duration-300 lg:static lg:translate-x-0 dark:bg-secondary-900',
@@ -59,6 +67,7 @@ export default function AdminLayout() {
               key={to}
               to={to}
               end={end}
+              onClick={() => setIsSidebarOpen(false)}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors',

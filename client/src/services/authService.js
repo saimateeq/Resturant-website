@@ -2,8 +2,8 @@ import axiosInstance from './axiosInstance';
 
 export const authService = {
   register: (payload) => axiosInstance.post('/auth/register', payload),
-  verifyOtp: (payload) => axiosInstance.post('/auth/verify-otp', payload),
-  resendOtp: (email) => axiosInstance.post('/auth/resend-otp', { email }),
+  sendSignupOtp: (email) => axiosInstance.post('/auth/signup/otp', { email }),
+  verifySignupOtp: (payload) => axiosInstance.post('/auth/signup/verify', payload),
   login: (payload) => axiosInstance.post('/auth/login', payload),
   googleLogin: (idToken) => axiosInstance.post('/auth/google', { idToken }),
   logout: () => axiosInstance.post('/auth/logout'),

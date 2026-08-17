@@ -8,6 +8,7 @@ export const registerValidator = [
     .withMessage('Password must be at least 8 characters')
     .matches(/\d/)
     .withMessage('Password must contain a number'),
+  body('verificationToken').notEmpty().withMessage('Email verification is required'),
 ];
 
 export const loginValidator = [
@@ -15,7 +16,9 @@ export const loginValidator = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
-export const verifyOtpValidator = [
+export const sendSignupOtpValidator = [body('email').isEmail().withMessage('A valid email is required').normalizeEmail()];
+
+export const verifySignupOtpValidator = [
   body('email').isEmail().normalizeEmail(),
   body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
 ];

@@ -7,7 +7,8 @@ const FOOTER_LINKS = [
     links: [
       { to: '/menu', label: 'Menu' },
       { to: '/about', label: 'About Us' },
-      { to: '/blog', label: 'Blog' },
+      { to: '/gallery', label: 'Gallery' },
+      { to: '/blog', label: 'Journal' },
       { to: '/reservations', label: 'Reservations' },
     ],
   },
@@ -23,69 +24,78 @@ const FOOTER_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-secondary-500/10 bg-secondary-50 dark:bg-secondary-950">
-      <div className="container-app grid grid-cols-1 gap-10 py-16 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <p className="font-display text-2xl font-bold text-primary-600 dark:text-primary-400">
+    <footer className="bg-ink py-24 sm:py-32">
+      <div className="container-app">
+        <div className="text-center">
+          <Link to="/" className="font-display text-6xl font-medium text-cream italic sm:text-8xl">
             Savoria
+          </Link>
+          <p className="mt-6 font-display text-2xl text-gold italic sm:text-3xl">
+            Come hungry. Leave happy.
           </p>
-          <p className="mt-3 text-sm text-secondary-500 dark:text-secondary-400">
-            A premium dining experience crafted with passion, quality ingredients, and warm hospitality.
-          </p>
-          <div className="mt-4 flex gap-3">
-            {[FiInstagram, FiFacebook, FiTwitter].map((Icon, idx) => (
-              <a
-                key={idx}
-                href="#"
-                aria-label="Social media"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary-500/10 text-secondary-600 transition-colors hover:bg-primary-500 hover:text-white dark:text-secondary-300"
-              >
-                <Icon size={16} />
-              </a>
-            ))}
-          </div>
         </div>
 
-        {FOOTER_LINKS.map((section) => (
-          <div key={section.title}>
-            <p className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-              {section.title}
+        <div className="mt-20 grid grid-cols-1 gap-12 border-t border-cream/10 pt-16 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <p className="eyebrow text-cream/50">Visit</p>
+            <p className="mt-4 font-body text-sm text-cream/70">
+              123 Gourmet Street
+              <br />
+              Flavor City, FC 10001
             </p>
-            <ul className="mt-4 space-y-2">
-              {section.links.map((link) => (
-                <li key={link.to}>
-                  <Link
-                    to={link.to}
-                    className="text-sm text-secondary-500 transition-colors hover:text-primary-500 dark:text-secondary-400"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
+            <div className="mt-6 flex gap-3">
+              {[FiInstagram, FiFacebook, FiTwitter].map((Icon, idx) => (
+                <a
+                  key={idx}
+                  href="#"
+                  aria-label="Social media"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/15 text-cream/70 transition-colors hover:border-gold hover:text-gold"
+                >
+                  <Icon size={15} />
+                </a>
               ))}
+            </div>
+          </div>
+
+          {FOOTER_LINKS.map((section) => (
+            <div key={section.title}>
+              <p className="eyebrow text-cream/50">{section.title}</p>
+              <ul className="mt-4 space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.to}>
+                    <Link
+                      to={link.to}
+                      className="font-body text-sm text-cream/70 transition-colors hover:text-cream"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div>
+            <p className="eyebrow text-cream/50">Contact</p>
+            <ul className="mt-4 space-y-2.5 font-body text-sm text-cream/70">
+              <li className="flex items-center gap-2">
+                <FiMapPin size={14} /> 123 Gourmet Street
+              </li>
+              <li className="flex items-center gap-2">
+                <FiPhone size={14} /> +1 (555) 012-3456
+              </li>
+              <li className="flex items-center gap-2">
+                <FiMail size={14} /> hello@savoria.com
+              </li>
             </ul>
           </div>
-        ))}
-
-        <div>
-          <p className="font-display text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-            Contact
-          </p>
-          <ul className="mt-4 space-y-3 text-sm text-secondary-500 dark:text-secondary-400">
-            <li className="flex items-center gap-2">
-              <FiMapPin size={16} /> 123 Gourmet Street, Flavor City
-            </li>
-            <li className="flex items-center gap-2">
-              <FiPhone size={16} /> +1 (555) 012-3456
-            </li>
-            <li className="flex items-center gap-2">
-              <FiMail size={16} /> hello@savoria.com
-            </li>
-          </ul>
         </div>
-      </div>
 
-      <div className="border-t border-secondary-500/10 py-6 text-center text-xs text-secondary-500 dark:text-secondary-400">
-        © {new Date().getFullYear()} Savoria Restaurant. All rights reserved.
+        <div className="mt-16 border-t border-cream/10 pt-8 text-center">
+          <p className="font-body text-xs text-cream/40">
+            © {new Date().getFullYear()} Savoria Restaurant. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );

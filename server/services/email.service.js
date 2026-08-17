@@ -50,7 +50,7 @@ export function sendOtpEmail(to, otp) {
       'Verify your email address',
       `<p>Your verification code is:</p>
        <p style="font-size: 32px; font-weight: 700; letter-spacing: 6px;">${otp}</p>
-       <p>This code expires in 5 minutes. After 3 incorrect attempts or 5 minutes without verifying, this account will be removed and you'll need to register again.</p>`,
+       <p>This code expires in 5 minutes. After 3 incorrect attempts, you'll need to request a new one.</p>`,
     ),
   );
 }
