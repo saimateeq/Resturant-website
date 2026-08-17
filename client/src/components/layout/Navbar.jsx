@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiShoppingBag, FiUser, FiLogOut } from 'react-icons/fi';
@@ -10,6 +11,7 @@ import { USER_ROLES } from '@constants';
 const ADMIN_ROLES = [USER_ROLES.ADMIN, USER_ROLES.MANAGER];
 
 const NAV_LINKS = [
+  { to: '/', label: 'Home' },
   { to: '/menu', label: 'Menu' },
   { to: '/about', label: 'Our Story' },
   { to: '/gallery', label: 'Gallery' },
@@ -68,12 +70,13 @@ export default function Navbar() {
     : 'text-ink/70 hover:bg-ink/5 hover:text-ink';
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 w-full transition-colors duration-500',
-        transparent ? 'border-b border-transparent bg-transparent' : 'border-b border-ink/10 bg-cream/95 backdrop-blur-sm',
-      )}
-    >
+    <>
+      <header
+        className={cn(
+          'sticky top-0 z-50 w-full transition-colors duration-500',
+          transparent ? 'border-b border-transparent bg-transparent' : 'border-b border-ink/10 bg-cream/95 backdrop-blur-sm',
+        )}
+      >
       <nav className="container-app flex h-20 items-center justify-between">
         <Link
           to="/"
@@ -168,19 +171,27 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
+      </header>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-40 bg-ink/60 lg:hidden"
-              onClick={() => setIsOpen(false)}
-              aria-hidden="true"
-            />
+      {/* Portalled to <body> rather than nested in <header> — the header's
+          own backdrop-blur (applied whenever it's in its solid state, which
+          is always true on every non-home route) creates a new CSS
+          containing block for position:fixed descendants, which silently
+          collapsed this drawer's fixed inset-y-0 to the header's own ~80px
+          box instead of the viewport. */}
+      {createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 z-40 bg-ink/60 lg:hidden"
+                onClick={() => setIsOpen(false)}
+                aria-hidden="true"
+              />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -263,9 +274,11 @@ export default function Navbar() {
                 </div>
               </div>
             </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </header>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
+    </>
   );
 }
