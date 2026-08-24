@@ -84,7 +84,7 @@ export default function AdminLayout() {
         </nav>
       </aside>
 
-      <div className="flex-1 lg:ml-0">
+      <div className="min-w-0 flex-1 lg:ml-0">
         <header className="flex h-16 items-center justify-between border-b border-secondary-500/10 bg-white px-6 dark:bg-secondary-900">
           <button className="lg:hidden" onClick={() => setIsSidebarOpen(true)} aria-label="Open sidebar">
             <FiMenu size={20} />
