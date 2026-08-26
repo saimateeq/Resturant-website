@@ -173,12 +173,19 @@ function ScrubbedHero() {
   const drawFrame = (floatIndex) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (!ctxRef.current) ctxRef.current = canvas.getContext('2d');
+    // alpha:false lets the browser skip per-pixel alpha compositing on what's
+    // often a near-full-viewport canvas — the void color is painted below
+    // instead of relying on transparency + the wrapper's background showing
+    // through, which was the only thing alpha blending bought here.
+    if (!ctxRef.current) ctxRef.current = canvas.getContext('2d', { alpha: false });
     const ctx = ctxRef.current;
     // Resizing the canvas resets context state, so this gets reapplied on
-    // every draw rather than once — the cost is negligible.
+    // every draw rather than once — the cost is negligible. 'medium' (not
+    // 'high') because the source frames are only 1280x720 to begin with —
+    // max-quality resampling onto a much larger canvas buys no real
+    // sharpness back but costs noticeably more per draw.
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    ctx.imageSmoothingQuality = 'medium';
     const cw = canvas.width;
     const ch = canvas.height;
     const { dw, dh, dx, dy } = computeFrameTransform(cw, ch);
@@ -196,7 +203,8 @@ function ScrubbedHero() {
       ctx.drawImage(img, dx, dy, dw, dh);
     };
 
-    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = FOOTAGE_VOID;
+    ctx.fillRect(0, 0, cw, ch);
     drawCover(lowImg, 1);
     if (highImg && highImg !== lowImg) {
       drawCover(highImg, blend);
@@ -288,7 +296,10 @@ function ScrubbedHero() {
       // leave the canvas bitmap mismatched with its actual CSS box — the
       // image would render stretched/misaligned and the watermark cover
       // (already positioned from clientWidth/Height) would drift off target.
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Capped below the usual 2x/3x device ratios: the source frames are
+      // only 1280x720, so beyond ~1.5x there's no extra real detail to show
+      // — just a bigger canvas to fill and blend on every scroll tick.
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = canvas.clientWidth * dpr;
       canvas.height = canvas.clientHeight * dpr;
       drawFrame(frameIndexRef.current);
@@ -310,13 +321,37 @@ function ScrubbedHero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress]);
 
-  useMotionValueEvent(scrollYProgress, 'change', (value) => {
+  // Scroll 'change' events can fire more than once per animation frame
+  // (trackpad momentum, fast wheel input) — without coalescing, each one
+  // triggers a full canvas redraw plus a dozen style writes, so the page can
+  // do several frames' worth of drawing work for a single displayed frame.
+  // Buffering the latest value and drawing once per rAF caps the work to
+  // exactly one draw per paint, which is what actually stabilizes the rate.
+  const latestScrollRef = useRef(0);
+  const rafIdRef = useRef(null);
+
+  const renderTick = () => {
+    rafIdRef.current = null;
+    const value = latestScrollRef.current;
     const clamped = Math.min(value / ANIMATION_END, 1);
     const floatIndex = clamped * (FRAME_URLS.length - 1);
     frameIndexRef.current = floatIndex;
     drawFrame(floatIndex);
     applyOverlayStyles(value);
+  };
+
+  useMotionValueEvent(scrollYProgress, 'change', (value) => {
+    latestScrollRef.current = value;
+    if (rafIdRef.current === null) {
+      rafIdRef.current = requestAnimationFrame(renderTick);
+    }
   });
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
 
   return (
     <section ref={wrapperRef} className="relative" style={{ height: '500vh' }}>
